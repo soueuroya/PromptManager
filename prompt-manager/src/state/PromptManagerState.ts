@@ -242,6 +242,13 @@ export class PromptManagerState {
     this.refreshQueuePayloadsForTask(taskId);
   }
 
+  public deleteTask(taskId: string): void {
+    this.tasks = this.tasks.filter(t => t.id !== taskId);
+    this.executionQueue = this.executionQueue.filter(
+      item => item.sourceId !== taskId && item.parentTaskId !== taskId
+    );
+  }
+
   public deleteDetachedPrompt(promptId: string): void {
     this.detachedPrompts = this.detachedPrompts.filter(p => p.id !== promptId);
     this.executionQueue = this.executionQueue.filter(item => item.sourceId !== promptId);

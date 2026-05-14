@@ -97,8 +97,11 @@ export class PromptManagerHtmlRenderer {
                 onchange="post('updateDetachedPromptTitle', { promptId: '${prompt.id}', value: this.value })"
               />
 
-              <button onclick="post('addDetachedPromptToQueue', { promptId: '${prompt.id}' })">Queue</button>
               <button class="danger small-button" onclick="post('deleteDetachedPrompt', { promptId: '${prompt.id}' })">×</button>
+            </div>
+
+            <div class="prompt-action-row">
+              <button onclick="post('addDetachedPromptToQueue', { promptId: '${prompt.id}' })">Queue</button>
             </div>
 
             <div class="${prompt.isCollapsed ? "hidden" : ""}">
@@ -125,6 +128,22 @@ export class PromptManagerHtmlRenderer {
     return tasks
       .map((task, taskIndex) => {
         const collapsedClass = task.isCollapsed ? "collapsed" : "";
+        const taskReferencesHtml = task.references.length > 0
+          ? `
+              <div class="section">
+                <div class="section-title">Task References</div>
+                ${this.getReferencesHtml(task.references, "task", task.id)}
+              </div>
+            `
+          : "";
+        const acceptanceCriteriaHtml = task.acceptanceCriteria.length > 0
+          ? `
+              <div class="section">
+                <div class="section-title">Acceptance Criteria</div>
+                ${this.getCriteriaHtml(task)}
+              </div>
+            `
+          : "";
 
         return `
           <div
@@ -150,29 +169,39 @@ export class PromptManagerHtmlRenderer {
                 onchange="post('updateTaskTitle', { taskId: '${task.id}', value: this.value })"
               />
 
-              <span class="status-pill ${task.status}">${task.status}</span>
+              <button class="danger small-button" title="Delete task" onclick="post('deleteTask', { taskId: '${task.id}' })">&times;</button>
             </div>
 
-            <div class="task-body">
-              <select
-                class="category-select"
-                onchange="post('updateTaskCategory', { taskId: '${task.id}', value: this.value })"
-              >
-                ${this.getCategoryOptions(task.category)}
-              </select>
+            <div class="task-control-row">
+              <span class="status-pill ${task.status}">${task.status}</span>
 
               <select
                 class="status-select"
+                title="Task status"
                 onchange="post('updateTaskStatus', { taskId: '${task.id}', value: this.value })"
               >
                 ${this.getTaskStatusOptions(task.status)}
               </select>
 
-              <div class="section">
-                <div class="section-title">Task References</div>
-                ${this.getReferencesHtml(task.references, "task", task.id)}
-                <button onclick="post('addReferenceToTask', { taskId: '${task.id}' })">+ Reference</button>
-              </div>
+              <select
+                class="category-select"
+                title="Feature style"
+                onchange="post('updateTaskCategory', { taskId: '${task.id}', value: this.value })"
+              >
+                ${this.getCategoryOptions(task.category)}
+              </select>
+            </div>
+
+            <div class="task-action-row">
+              <button onclick="post('addTaskToQueue', { taskId: '${task.id}' })">+ Queue</button>
+              <button title="Add reference" onclick="post('addReferenceToTask', { taskId: '${task.id}' })">+ &#128196;</button>
+              <button onclick="post('addAcceptanceCriteria', { taskId: '${task.id}' })">+ AC</button>
+              <button onclick="post('createPrompt', { taskId: '${task.id}' })">+ Prompt</button>
+              <button onclick="post('askAi', { taskId: '${task.id}' })">Ask AI</button>
+            </div>
+
+            <div class="task-body">
+              ${taskReferencesHtml}
 
               <div class="section">
                 <div class="section-title">Prompts</div>
@@ -184,17 +213,7 @@ export class PromptManagerHtmlRenderer {
                 </div>
               </div>
 
-              <div class="section">
-                <div class="section-title">Acceptance Criteria</div>
-                ${this.getCriteriaHtml(task)}
-              </div>
-
-              <div class="actions">
-                <button onclick="post('createPrompt', { taskId: '${task.id}' })">+ Prompt</button>
-                <button onclick="post('addAcceptanceCriteria', { taskId: '${task.id}' })">+ Criteria</button>
-                <button onclick="post('addTaskToQueue', { taskId: '${task.id}' })">Queue Task</button>
-                <button onclick="post('askAi', { taskId: '${task.id}' })">Ask AI</button>
-              </div>
+              ${acceptanceCriteriaHtml}
             </div>
           </div>
         `;
@@ -241,8 +260,12 @@ export class PromptManagerHtmlRenderer {
                 onchange="post('updatePromptTitle', { taskId: '${task.id}', promptId: '${prompt.id}', value: this.value })"
               />
 
-              <button onclick="post('addPromptToQueue', { taskId: '${task.id}', promptId: '${prompt.id}' })">Queue</button>
               <button class="danger small-button" onclick="post('deletePrompt', { taskId: '${task.id}', promptId: '${prompt.id}' })">×</button>
+            </div>
+
+            <div class="prompt-action-row">
+              <button onclick="post('addPromptToQueue', { taskId: '${task.id}', promptId: '${prompt.id}' })">Queue</button>
+              <button title="Add reference" onclick="post('addReferenceToPrompt', { taskId: '${task.id}', promptId: '${prompt.id}' })">+ &#128196;</button>
             </div>
 
             <div class="${prompt.isCollapsed ? "hidden" : ""}">
@@ -253,11 +276,14 @@ export class PromptManagerHtmlRenderer {
                 onchange="post('updatePromptContent', { taskId: '${task.id}', promptId: '${prompt.id}', value: this.value })"
               >${this.escapeHtml(prompt.content)}</textarea>
 
-              <div class="section">
-                <div class="section-title">Prompt References</div>
-                ${this.getReferencesHtml(prompt.references, "prompt", task.id, prompt.id)}
-                <button onclick="post('addReferenceToPrompt', { taskId: '${task.id}', promptId: '${prompt.id}' })">+ Reference</button>
-              </div>
+              ${prompt.references.length > 0
+                ? `
+                  <div class="section">
+                    <div class="section-title">Prompt References</div>
+                    ${this.getReferencesHtml(prompt.references, "prompt", task.id, prompt.id)}
+                  </div>
+                `
+                : ""}
             </div>
           </div>
         `
@@ -514,6 +540,8 @@ export class PromptManagerHtmlRenderer {
 
         .toolbar,
         .actions,
+        .task-action-row,
+        .prompt-action-row,
         .queue-actions {
           display: flex;
           gap: 6px;
@@ -586,12 +614,26 @@ export class PromptManagerHtmlRenderer {
         }
 
         .task-top,
+        .task-control-row,
         .prompt-row,
         .criteria-row,
         .queue-title {
           display: flex;
           align-items: center;
           gap: 6px;
+        }
+
+        .task-control-row {
+          flex-wrap: wrap;
+          margin-top: 8px;
+        }
+
+        .task-action-row {
+          margin-top: 6px;
+        }
+
+        .prompt-action-row {
+          margin-top: 6px;
         }
 
         .criteria-row {
@@ -637,6 +679,13 @@ export class PromptManagerHtmlRenderer {
         .task-title-input,
         .prompt-title-input {
           font-weight: 700;
+          flex: 1 1 120px;
+          min-width: 0;
+        }
+
+        .task-control-row select {
+          width: auto;
+          min-width: 88px;
         }
 
         .prompt-content-input {

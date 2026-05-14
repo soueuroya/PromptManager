@@ -104,6 +104,10 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
           this.state.deletePrompt(message.taskId, message.promptId);
           break;
 
+        case "deleteTask":
+          this.state.deleteTask(message.taskId);
+          break;
+
         case "deleteDetachedPrompt":
           this.state.deleteDetachedPrompt(message.promptId);
           break;
