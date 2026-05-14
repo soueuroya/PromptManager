@@ -53,4 +53,5 @@ export interface ExecutionQueueItem {
   title: string;
   payload: string;
   status: QueueItemStatus;
+  completedAt?: number;
 }

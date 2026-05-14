@@ -1,30 +1,34 @@
 {
   "version": 1,
-  "detachedPrompts": [],
+  "detachedPrompts": [
+    {
+      "id": "detached-prompt-1778781130233",
+      "title": "Prevent Drag and Drop when clicking on input text areas",
+      "content": "Prevent Drag and Drop when clicking on input text areas of the extension.\nThe name of task and name of prompts input elements are still being dragged\nLet's make a dedicated Drag element on the UIs elements that are draggable. the other elements should behave normally, like being able to select specific parts of a text area",
+      "references": [],
+      "isCollapsed": true,
+      "createdAt": 1778781130233
+    }
+  ],
   "tasks": [
     {
       "id": "task-1778779647332",
       "title": "UI/UX Improvements",
       "category": "other",
-      "status": "todo",
-      "acceptanceCriteria": [
-        {
-          "text": "whenever clicking around and focusing different elements in the window. the scrollview doesn't change position or reset back to the top. the user is the only one who controls the position of the scrollview",
-          "status": "pending"
-        }
-      ],
+      "status": "running",
+      "acceptanceCriteria": [],
       "prompts": [
         {
-          "id": "prompt-1778779679580",
-          "title": "Fix scroll reset",
-          "content": "Whenever finishin to add information in a input field. I click outside of it to access another field, but since there are a lot of tasks, the scrollview reset back to the top, hidding the element I tried to interact next. Implement the fix to prevent this scroll reset back to the top and keep the container/scrollview in the same position.",
+          "id": "prompt-1778782244823",
+          "title": "Add option to \"Keep Hisotry\"",
+          "content": "Right next to the option: \"Auto Next\" we need to add the option \"Keep History\"\nIf selected, any tasks/prompts on the queue flagged as Done will be archived. \nIf not keeping history, simply deleted.",
           "references": [],
           "isCollapsed": false,
-          "createdAt": 1778779679580
+          "createdAt": 1778782244823
         }
       ],
       "references": [],
-      "isCollapsed": true,
+      "isCollapsed": false,
       "createdAt": 1778779647332
     }
   ]

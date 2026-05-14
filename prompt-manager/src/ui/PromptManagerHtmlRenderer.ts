@@ -16,6 +16,10 @@ export class PromptManagerHtmlRenderer {
       queuePayloads[item.id] = item.payload;
     }
 
+    for (const item of state.queueHistory) {
+      queuePayloads[item.id] = item.payload;
+    }
+
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -74,13 +78,18 @@ export class PromptManagerHtmlRenderer {
         prompt => `
           <div
             class="prompt-card detached-prompt-card"
-            draggable="true"
-            ondragstart="handlePromptDrag(event, null, '${prompt.id}')"
           >
             <div class="prompt-row">
               <button class="collapse-button" onclick="post('togglePrompt', { promptId: '${prompt.id}' })">
                 ${prompt.isCollapsed ? "▶" : "▼"}
               </button>
+
+              <span
+                class="drag-handle"
+                draggable="true"
+                title="Drag prompt"
+                ondragstart="handlePromptDrag(event, null, '${prompt.id}')"
+              >⋮⋮</span>
 
               <input
                 class="prompt-title-input"
@@ -118,8 +127,6 @@ export class PromptManagerHtmlRenderer {
         return `
           <div
             class="task-card ${collapsedClass}"
-            draggable="true"
-            ondragstart="handleTaskDrag(event, ${taskIndex})"
             ondragover="allowDrop(event)"
             ondrop="handleTaskDrop(event, ${taskIndex})"
           >
@@ -128,7 +135,12 @@ export class PromptManagerHtmlRenderer {
                 ${task.isCollapsed ? "▶" : "▼"}
               </button>
 
-              <span class="drag-handle">⋮⋮</span>
+              <span
+                class="drag-handle"
+                draggable="true"
+                title="Drag task"
+                ondragstart="handleTaskDrag(event, ${taskIndex})"
+              >⋮⋮</span>
 
               <input
                 class="task-title-input"
@@ -206,8 +218,6 @@ export class PromptManagerHtmlRenderer {
         (prompt, promptIndex) => `
           <div
             class="prompt-card"
-            draggable="true"
-            ondragstart="handlePromptDrag(event, '${task.id}', '${prompt.id}')"
             ondragover="allowDrop(event)"
             ondrop="handlePromptDrop(event, '${task.id}', ${promptIndex})"
           >
@@ -216,7 +226,12 @@ export class PromptManagerHtmlRenderer {
                 ${prompt.isCollapsed ? "▶" : "▼"}
               </button>
 
-              <span class="drag-handle">⋮⋮</span>
+              <span
+                class="drag-handle"
+                draggable="true"
+                title="Drag prompt"
+                ondragstart="handlePromptDrag(event, '${task.id}', '${prompt.id}')"
+              >⋮⋮</span>
 
               <input
                 class="prompt-title-input"
@@ -320,13 +335,16 @@ export class PromptManagerHtmlRenderer {
               (item, index) => `
                 <div
                   class="queue-item ${item.status}"
-                  draggable="true"
-                  ondragstart="handleQueueDrag(event, ${index}, '${item.id}')"
                   ondragover="allowDrop(event)"
                   ondrop="handleQueueDrop(event, ${index})"
                 >
                   <div class="queue-title">
-                    <span class="drag-handle">⋮⋮</span>
+                    <span
+                      class="drag-handle"
+                      draggable="true"
+                      title="Drag queue item"
+                      ondragstart="handleQueueDrag(event, ${index}, '${item.id}')"
+                    >⋮⋮</span>
                     <strong>${this.escapeHtml(item.title)}</strong>
                     <span class="queue-type">${item.type}</span>
                     <span class="queue-status">${item.status}</span>
@@ -343,6 +361,33 @@ export class PromptManagerHtmlRenderer {
             )
             .join("")
         : `<div class="empty-small">Queue is empty. Add tasks or prompts to start execution planning.</div>`;
+    const historyHtml =
+      state.queueHistory.length > 0
+        ? `
+          <div class="queue-history-header">
+            <span>History</span>
+            <button class="small-text-button" onclick="post('clearQueueHistory')">Clear History</button>
+          </div>
+          ${state.queueHistory
+            .map(
+              item => `
+                <div class="queue-item done queue-history-item">
+                  <div class="queue-title">
+                    <strong>${this.escapeHtml(item.title)}</strong>
+                    <span class="queue-type">${item.type}</span>
+                    <span class="queue-status">done</span>
+                  </div>
+
+                  <div class="queue-actions">
+                    <button onclick="copyQueuePayload('${item.id}')">Copy</button>
+                    <button class="danger small-button" onclick="post('removeQueueHistoryItem', { queueId: '${item.id}' })">Ã—</button>
+                  </div>
+                </div>
+              `
+            )
+            .join("")}
+        `
+        : "";
 
     return `
       <div class="queue-panel ${state.isQueueCollapsed ? "collapsed" : ""}">
@@ -364,10 +409,20 @@ export class PromptManagerHtmlRenderer {
             />
             Auto next
           </label>
+
+          <label>
+            <input
+              type="checkbox"
+              ${state.keepHistory ? "checked" : ""}
+              onchange="post('toggleKeepHistory', { value: this.checked })"
+            />
+            Keep history
+          </label>
         </div>
 
         <div class="queue-body">
           ${queueHtml}
+          ${historyHtml}
         </div>
       </div>
     `;
@@ -488,6 +543,26 @@ export class PromptManagerHtmlRenderer {
           margin-bottom: 12px;
         }
 
+        .queue-history-item {
+          opacity: 0.78;
+        }
+
+        .queue-history-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: var(--vscode-descriptionForeground);
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin: 10px 0 6px;
+        }
+
+        .small-text-button {
+          padding: 3px 6px;
+          font-size: 11px;
+        }
+
         .prompt-card {
           border-left: 3px solid var(--vscode-focusBorder);
           background: var(--vscode-input-background);
@@ -606,11 +681,16 @@ export class PromptManagerHtmlRenderer {
         .drag-handle {
           color: var(--vscode-descriptionForeground);
           cursor: grab;
+          display: inline-flex;
+          flex: 0 0 auto;
+          align-items: center;
+          justify-content: center;
+          width: 18px;
           user-select: none;
         }
 
-        .queue-item {
-          cursor: grab;
+        .drag-handle:active {
+          cursor: grabbing;
         }
 
         .task-card.drag-over,
@@ -662,8 +742,46 @@ export class PromptManagerHtmlRenderer {
       <script>
         const vscode = acquireVsCodeApi();
         const queuePayloads = ${JSON.stringify(queuePayloads)};
+        const scrollContainerSelectors = [".content", ".queue-body"];
+
+        function getPersistedState() {
+          return vscode.getState() || {};
+        }
+
+        function persistScrollPositions() {
+          const currentState = getPersistedState();
+          const scrollPositions = { ...(currentState.scrollPositions || {}) };
+
+          for (const selector of scrollContainerSelectors) {
+            const element = document.querySelector(selector);
+
+            if (element) {
+              scrollPositions[selector] = element.scrollTop;
+            }
+          }
+
+          vscode.setState({
+            ...currentState,
+            scrollPositions
+          });
+        }
+
+        function restoreScrollPositions() {
+          const scrollPositions = getPersistedState().scrollPositions || {};
+
+          for (const selector of scrollContainerSelectors) {
+            const element = document.querySelector(selector);
+            const scrollTop = scrollPositions[selector];
+
+            if (element && typeof scrollTop === "number") {
+              element.scrollTop = scrollTop;
+            }
+          }
+        }
 
         function post(type, data = {}) {
+          persistScrollPositions();
+
           vscode.postMessage({
             type,
             ...data
@@ -680,6 +798,7 @@ export class PromptManagerHtmlRenderer {
         }
 
         function handleTaskDrag(event, fromIndex) {
+          event.stopPropagation();
           event.dataTransfer.setData("application/json", JSON.stringify({
             kind: "task",
             fromIndex
@@ -701,6 +820,7 @@ export class PromptManagerHtmlRenderer {
         }
 
         function handlePromptDrag(event, fromTaskId, fromPromptId) {
+          event.stopPropagation();
           event.dataTransfer.setData("application/json", JSON.stringify({
             kind: "prompt",
             fromTaskId,
@@ -726,6 +846,7 @@ export class PromptManagerHtmlRenderer {
         }
 
         function handleQueueDrag(event, fromIndex, queueId) {
+          event.stopPropagation();
           event.dataTransfer.setData("application/json", JSON.stringify({
             kind: "queue",
             fromIndex
@@ -767,6 +888,20 @@ export class PromptManagerHtmlRenderer {
           if (event.target && event.target.classList) {
             event.target.classList.remove("drag-over");
           }
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+          restoreScrollPositions();
+
+          for (const selector of scrollContainerSelectors) {
+            const element = document.querySelector(selector);
+
+            if (element) {
+              element.addEventListener("scroll", persistScrollPositions, { passive: true });
+            }
+          }
+
+          requestAnimationFrame(restoreScrollPositions);
         });
       </script>
     `;

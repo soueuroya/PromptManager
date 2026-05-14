@@ -11,18 +11,43 @@ import {
 export interface PromptManagerSnapshot {
   version: number;
   autoSendNext: boolean;
+  keepHistory: boolean;
   isQueueCollapsed: boolean;
   detachedPrompts: PromptItem[];
   tasks: TaskItem[];
   executionQueue: ExecutionQueueItem[];
+  queueHistory: ExecutionQueueItem[];
 }
 
 export class PromptManagerState {
+  private static readonly stateUpdateInstructions = [
+    "",
+    "## PromptManager State Update Protocol",
+    "",
+    "Your final response must end with a machine-readable PROMPTMANAGER_STATE_UPDATE_BLOCK.",
+    "Use only these exact status values:",
+    "- TASK_STATUS: TODO, IMPLEMENTED, VALIDATING, DONE, IN_PROGRESS, FAILED, BLOCKED",
+    "- PROMPT_STATUS: TODO, IMPLEMENTED, VALIDATED, DONE, FAILED, BLOCKED",
+    "- QUEUE_STATUS: QUEUED, ACTIVE, IMPLEMENTING, VALIDATING, DONE, FAILED, BLOCKED",
+    "- Acceptance criteria: PASS, FAIL, UNKNOWN",
+    "",
+    "State rules:",
+    "- DONE can only be used when every acceptance criterion is PASS.",
+    "- UNKNOWN prevents DONE.",
+    "- If Auto Next is enabled and every acceptance criterion is PASS, set NEXT_QUEUE_ACTION to CONTINUE.",
+    "- If Auto Next is disabled, set NEXT_QUEUE_ACTION to STOP.",
+    "- If anything fails or is UNKNOWN, set NEXT_QUEUE_ACTION to STOP.",
+    "",
+    "Copy the block below as the final section of your response and replace the statuses/explanations with the actual result."
+  ].join("\n");
+
   public autoSendNext = false;
+  public keepHistory = false;
   public isQueueCollapsed = false;
   public detachedPrompts: PromptItem[] = [];
   public tasks: TaskItem[] = [];
   public executionQueue: ExecutionQueueItem[] = [];
+  public queueHistory: ExecutionQueueItem[] = [];
 
   public static createEmpty(): PromptManagerState {
     return new PromptManagerState();
@@ -34,20 +59,24 @@ export class PromptManagerState {
     }
 
     this.autoSendNext = snapshot.autoSendNext ?? false;
+    this.keepHistory = snapshot.keepHistory ?? false;
     this.isQueueCollapsed = snapshot.isQueueCollapsed ?? false;
     this.detachedPrompts = snapshot.detachedPrompts ?? [];
     this.tasks = snapshot.tasks ?? [];
     this.executionQueue = snapshot.executionQueue ?? [];
+    this.queueHistory = snapshot.queueHistory ?? [];
   }
 
   public toSnapshot(): PromptManagerSnapshot {
     return {
       version: 1,
       autoSendNext: this.autoSendNext,
+      keepHistory: this.keepHistory,
       isQueueCollapsed: this.isQueueCollapsed,
       detachedPrompts: this.detachedPrompts,
       tasks: this.tasks,
-      executionQueue: this.executionQueue
+      executionQueue: this.executionQueue,
+      queueHistory: this.queueHistory
     };
   }
 
@@ -394,6 +423,14 @@ export class PromptManagerState {
     this.executionQueue = this.executionQueue.filter(item => item.id !== queueId);
   }
 
+  public removeQueueHistoryItem(queueId: string): void {
+    this.queueHistory = this.queueHistory.filter(item => item.id !== queueId);
+  }
+
+  public clearQueueHistory(): void {
+    this.queueHistory = [];
+  }
+
   public moveQueueItem(fromIndex: number, toIndex: number): void {
     if (
       fromIndex === toIndex ||
@@ -436,6 +473,10 @@ export class PromptManagerState {
       if (next) {
         next.status = "active";
       }
+    }
+
+    if (status === "done") {
+      this.completeQueueItem(item);
     }
   }
 
@@ -570,6 +611,35 @@ export class PromptManagerState {
     }
   }
 
+  private completeQueueItem(item: ExecutionQueueItem): void {
+    item.completedAt = Date.now();
+    this.executionQueue = this.executionQueue.filter(q => q.id !== item.id);
+
+    if (this.keepHistory) {
+      this.queueHistory.unshift(item);
+    }
+  }
+
+  private buildStateUpdateBlock(criteria: AcceptanceCriterion[]): string {
+    const criteriaLines =
+      criteria.length > 0
+        ? criteria.map((_, index) => `- [${index + 1}] UNKNOWN \u2014 Not validated yet.`)
+        : ["- [0] UNKNOWN \u2014 No acceptance criteria were provided."];
+
+    return [
+      PromptManagerState.stateUpdateInstructions,
+      "",
+      "## PROMPTMANAGER_STATE_UPDATE_BLOCK",
+      "TASK_STATUS: TODO",
+      "PROMPT_STATUS: TODO",
+      "QUEUE_STATUS: IMPLEMENTING",
+      "ACCEPTANCE_CRITERIA:",
+      ...criteriaLines,
+      "NEXT_QUEUE_ACTION: STOP",
+      `AUTO_NEXT_ALLOWED: ${this.autoSendNext ? "YES" : "NO"}`
+    ].join("\n");
+  }
+
   private buildTaskPayload(task: TaskItem): string {
     const taskReferences = task.references
       .map(r => `- ${r.label}: ${r.uri}`)
@@ -632,7 +702,7 @@ export class PromptManagerState {
       "",
       "## REQUIRED VALIDATION RESULT",
       "",
-      "Return this exact structure at the end:",
+      "Return this structure before the final state update block:",
       "",
       "PROMPTMANAGER_IMPLEMENTATION_SUMMARY:",
       "- Files changed",
@@ -656,7 +726,8 @@ export class PromptManagerState {
       "IMPORTANT:",
       "The validation step is mandatory.",
       "Do not skip acceptance criteria.",
-      "If something cannot be verified, mark it UNKNOWN and do not claim DONE."
+      "If something cannot be verified, mark it UNKNOWN and do not claim DONE.",
+      this.buildStateUpdateBlock(task.acceptanceCriteria)
     ].join("\n");
   }
 
@@ -725,7 +796,8 @@ export class PromptManagerState {
             this.autoSendNext
               ? "If DONE, continue with the next queued PromptManager item."
               : "Do not continue automatically."
-          ].join("\n")
+          ].join("\n"),
+      this.buildStateUpdateBlock(task?.acceptanceCriteria ?? [])
     ].join("\n");
   }
 }

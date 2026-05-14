@@ -58,6 +58,10 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
           this.state.autoSendNext = Boolean(message.value);
           break;
 
+        case "toggleKeepHistory":
+          this.state.keepHistory = Boolean(message.value);
+          break;
+
         case "updateTaskTitle":
           this.state.updateTaskTitle(message.taskId, message.value);
           break;
@@ -154,6 +158,10 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
           this.state.removeQueueItem(message.queueId);
           break;
 
+        case "removeQueueHistoryItem":
+          this.state.removeQueueHistoryItem(message.queueId);
+          break;
+
         case "moveQueueItem":
           this.state.moveQueueItem(message.fromIndex, message.toIndex);
           break;
@@ -181,6 +189,10 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
 
         case "clearQueue":
           this.state.executionQueue = [];
+          break;
+
+        case "clearQueueHistory":
+          this.state.clearQueueHistory();
           break;
 
         case "saveWorkspaceFiles":
@@ -291,8 +303,10 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
       await this.writeJson(this.getQueueFileUri(root), {
         version: snapshot.version,
         autoSendNext: snapshot.autoSendNext,
+        keepHistory: snapshot.keepHistory,
         isQueueCollapsed: snapshot.isQueueCollapsed,
-        executionQueue: snapshot.executionQueue
+        executionQueue: snapshot.executionQueue,
+        queueHistory: snapshot.queueHistory
       });
 
       if (showMessage) {
@@ -321,10 +335,12 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
       this.state.load({
         version: 1,
         autoSendNext: queueFile.autoSendNext ?? current.autoSendNext,
+        keepHistory: queueFile.keepHistory ?? current.keepHistory,
         isQueueCollapsed: queueFile.isQueueCollapsed ?? current.isQueueCollapsed,
         detachedPrompts: tasksFile.detachedPrompts ?? current.detachedPrompts,
         tasks: tasksFile.tasks ?? current.tasks,
-        executionQueue: queueFile.executionQueue ?? current.executionQueue
+        executionQueue: queueFile.executionQueue ?? current.executionQueue,
+        queueHistory: queueFile.queueHistory ?? current.queueHistory
       });
 
       if (showMessage) {
