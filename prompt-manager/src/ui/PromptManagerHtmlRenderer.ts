@@ -37,6 +37,10 @@ export class PromptManagerHtmlRenderer {
             <div class="toolbar">
               <button onclick="post('createTask')">+ Task</button>
               <button onclick="post('createDetachedPrompt')">+ Detached Prompt</button>
+              <button onclick="post('saveWorkspaceFiles')">Save Files</button>
+              <button onclick="post('loadWorkspaceFiles')">Load Files</button>
+              <button onclick="post('exportWorkspaceFile')">Export</button>
+              <button onclick="post('importWorkspaceFile')">Import</button>
               <button onclick="post('askAi')">Ask AI</button>
             </div>
           </div>

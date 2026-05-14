@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "autoSendNext": false,
+  "isQueueCollapsed": false,
+  "executionQueue": [
+    {
+      "id": "queue-1778779932294",
+      "type": "task",
+      "sourceId": "task-1778779647332",
+      "title": "UI/UX Improvements",
+      "payload": "# PromptManager Agent Execution Task\n\nYou are receiving a structured task from PromptManager.\nYou must run this as a two-step agent cycle: IMPLEMENTATION first, VALIDATION second.\n\n## Task Metadata\nTitle: UI/UX Improvements\nCategory: other\nCurrent PromptManager Status: todo\nAuto Next Enabled: NO\n\n## References\nNo task-level references provided.\n\n## STEP 1 — IMPLEMENTATION\nWork through the prompts below in order.\nMake the required project changes.\nDo not validate yet until implementation is complete.\n\nPROMPT 1: Fix scroll reset\nWhenever finishin to add information in a input field. I click outside of it to access another field, but since there are a lot of tasks, the scrollview reset back to the top, hidding the element I tried to interact next. Implement the fix to prevent this scroll reset back to the top and keep the container/scrollview in the same position.\nPrompt References: none\n\nWhen implementation is complete, internally flag this task as:\n\nPROMPTMANAGER_TASK_STATE: IMPLEMENTED\n\nThen immediately continue to STEP 2.\n\n## STEP 2 — ACCEPTANCE CRITERIA TESTING PROMPT\nNow run this as a second validation prompt/action:\n\nValidate the implementation against every acceptance criterion below.\nUse code inspection, tests, build checks, and project context where possible.\nDo not mark DONE unless every criterion passes.\n\n1. [pending] whenever clicking around and focusing different elements in the window. the scrollview doesn't change position or reset back to the top. the user is the only one who controls the position of the scrollview\n\n## REQUIRED VALIDATION RESULT\n\nReturn this exact structure at the end:\n\nPROMPTMANAGER_IMPLEMENTATION_SUMMARY:\n- Files changed\n- Systems touched\n- Important decisions\n\nPROMPTMANAGER_ACCEPTANCE_RESULTS:\n- Criterion 1: PASS/FAIL/UNKNOWN — explanation\n- Criterion 2: PASS/FAIL/UNKNOWN — explanation\n\nPROMPTMANAGER_FINAL_STATUS:\nDONE = all criteria passed\nIN_PROGRESS = implementation exists but more work is needed\nFAILED = blocked, broken, or criteria failed\n\nPROMPTMANAGER_NEXT_ACTION:\nDo not continue automatically. Stop after reporting the final status.\n\nIMPORTANT:\nThe validation step is mandatory.\nDo not skip acceptance criteria.\nIf something cannot be verified, mark it UNKNOWN and do not claim DONE.",
+      "status": "queued"
+    }
+  ]
+}

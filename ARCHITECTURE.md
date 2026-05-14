@@ -165,7 +165,9 @@ UI refresh
 
 ## Persistence
 
-Current persistence uses:
+Current persistence uses both VS Code workspace state and optional file-backed workspace files.
+
+Primary VS Code storage uses:
 
 ```txt
 context.workspaceState
@@ -178,6 +180,22 @@ promptManager.workspaceState
 ```
 
 This keeps state per VS Code workspace.
+
+File-backed persistence uses:
+
+```txt
+.promptmanager/
+ |-- tasks.json
+ |-- queue.json
+ |-- workflows/
+ `-- templates/
+```
+
+`tasks.json` stores tasks and detached prompts.
+
+`queue.json` stores the execution queue and queue UI/runtime flags.
+
+The webview provider also supports exporting the entire PromptManager snapshot into one JSON file and importing it later. This is the sharing format for moving tasks, prompts, criteria, references, and queue state between workspaces or users.
 
 ### Important Persistence Rule
 

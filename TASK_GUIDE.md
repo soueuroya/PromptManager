@@ -77,12 +77,15 @@ Usually requires updates in:
 - models.ts
 - PromptManagerState.ts
 - PromptManagerHtmlRenderer.ts
+- PromptManagerViewProvider.ts if persistence import/export needs to change
 
 Also verify:
 
 - Persistence compatibility
 - Snapshot serialization
 - Queue payload compatibility
+- `.promptmanager/tasks.json` compatibility
+- `.promptmanager/queue.json` compatibility
 
 ### Updating Queue Behavior
 
@@ -188,6 +191,14 @@ If changing snapshot structure:
 
 - Preserve compatibility
 - Or add migration handling
+
+PromptManager persists in three places:
+
+- `context.workspaceState`
+- `.promptmanager/tasks.json` and `.promptmanager/queue.json`
+- Exported single-file JSON snapshots
+
+All three formats should remain loadable when possible.
 
 ## UX Priorities
 

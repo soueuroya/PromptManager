@@ -6,6 +6,7 @@ import { PromptManagerHtmlRenderer } from "./PromptManagerHtmlRenderer";
 export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "promptManagerView";
   private static readonly storageKey = "promptManager.workspaceState";
+  private static readonly workspaceFolderName = ".promptmanager";
 
   private view?: vscode.WebviewView;
   private readonly state = PromptManagerState.createEmpty();
@@ -27,6 +28,7 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
     };
 
     this.refresh();
+    void this.initializeFilePersistence();
 
     webviewView.webview.onDidReceiveMessage(async message => {
       let shouldSave = true;
@@ -181,6 +183,29 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
           this.state.executionQueue = [];
           break;
 
+        case "saveWorkspaceFiles":
+          shouldSave = false;
+          await this.saveWorkspaceFiles(true);
+          await this.saveWorkspaceState();
+          break;
+
+        case "loadWorkspaceFiles":
+          shouldSave = false;
+          await this.loadWorkspaceFiles(true);
+          await this.saveWorkspaceState();
+          break;
+
+        case "exportWorkspaceFile":
+          shouldSave = false;
+          await this.exportWorkspaceFile();
+          break;
+
+        case "importWorkspaceFile":
+          shouldSave = false;
+          await this.importWorkspaceFile();
+          await this.save();
+          break;
+
         case "askAi":
           shouldSave = false;
           vscode.window.showInformationMessage("AI prompt generation will be connected next.");
@@ -208,10 +233,207 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async save(): Promise<void> {
+    await this.saveWorkspaceState();
+    await this.saveWorkspaceFiles(false);
+  }
+
+  private async saveWorkspaceState(): Promise<void> {
     await this.context.workspaceState.update(
       PromptManagerViewProvider.storageKey,
       this.state.toSnapshot()
     );
+  }
+
+  private async initializeFilePersistence(): Promise<void> {
+    const root = this.getWorkspaceRoot();
+
+    if (!root) {
+      return;
+    }
+
+    try {
+      const hasFileState = await this.hasWorkspaceFileState(root);
+      await this.ensureWorkspacePersistenceStructure(root);
+
+      if (hasFileState) {
+        await this.loadWorkspaceFiles(false);
+        await this.saveWorkspaceState();
+      } else {
+        await this.saveWorkspaceFiles(false);
+      }
+
+      this.refresh();
+    } catch (error) {
+      this.showPersistenceError("initialize file persistence", error);
+    }
+  }
+
+  private async saveWorkspaceFiles(showMessage: boolean): Promise<void> {
+    const root = this.getWorkspaceRoot();
+
+    if (!root) {
+      if (showMessage) {
+        vscode.window.showWarningMessage("Open a workspace folder before saving PromptManager files.");
+      }
+      return;
+    }
+
+    try {
+      await this.ensureWorkspacePersistenceStructure(root);
+      const snapshot = this.state.toSnapshot();
+
+      await this.writeJson(this.getTasksFileUri(root), {
+        version: snapshot.version,
+        detachedPrompts: snapshot.detachedPrompts,
+        tasks: snapshot.tasks
+      });
+
+      await this.writeJson(this.getQueueFileUri(root), {
+        version: snapshot.version,
+        autoSendNext: snapshot.autoSendNext,
+        isQueueCollapsed: snapshot.isQueueCollapsed,
+        executionQueue: snapshot.executionQueue
+      });
+
+      if (showMessage) {
+        vscode.window.showInformationMessage("PromptManager workspace files saved.");
+      }
+    } catch (error) {
+      this.showPersistenceError("save PromptManager workspace files", error);
+    }
+  }
+
+  private async loadWorkspaceFiles(showMessage: boolean): Promise<void> {
+    const root = this.getWorkspaceRoot();
+
+    if (!root) {
+      if (showMessage) {
+        vscode.window.showWarningMessage("Open a workspace folder before loading PromptManager files.");
+      }
+      return;
+    }
+
+    try {
+      const tasksFile = await this.readJson<Partial<PromptManagerSnapshot>>(this.getTasksFileUri(root));
+      const queueFile = await this.readJson<Partial<PromptManagerSnapshot>>(this.getQueueFileUri(root));
+      const current = this.state.toSnapshot();
+
+      this.state.load({
+        version: 1,
+        autoSendNext: queueFile.autoSendNext ?? current.autoSendNext,
+        isQueueCollapsed: queueFile.isQueueCollapsed ?? current.isQueueCollapsed,
+        detachedPrompts: tasksFile.detachedPrompts ?? current.detachedPrompts,
+        tasks: tasksFile.tasks ?? current.tasks,
+        executionQueue: queueFile.executionQueue ?? current.executionQueue
+      });
+
+      if (showMessage) {
+        vscode.window.showInformationMessage("PromptManager workspace files loaded.");
+      }
+    } catch (error) {
+      this.showPersistenceError("load PromptManager workspace files", error);
+    }
+  }
+
+  private async exportWorkspaceFile(): Promise<void> {
+    const target = await vscode.window.showSaveDialog({
+      defaultUri: this.getWorkspaceRoot()
+        ? vscode.Uri.joinPath(this.getWorkspaceRoot()!, "promptmanager-workspace.json")
+        : undefined,
+      filters: {
+        "PromptManager Workspace": ["json"]
+      },
+      saveLabel: "Export PromptManager Workspace"
+    });
+
+    if (!target) {
+      return;
+    }
+
+    try {
+      await this.writeJson(target, this.state.toSnapshot());
+      vscode.window.showInformationMessage("PromptManager workspace exported.");
+    } catch (error) {
+      this.showPersistenceError("export PromptManager workspace", error);
+    }
+  }
+
+  private async importWorkspaceFile(): Promise<void> {
+    const selected = await vscode.window.showOpenDialog({
+      canSelectFiles: true,
+      canSelectFolders: false,
+      canSelectMany: false,
+      filters: {
+        "PromptManager Workspace": ["json"]
+      },
+      openLabel: "Import PromptManager Workspace"
+    });
+
+    if (!selected || selected.length === 0) {
+      return;
+    }
+
+    try {
+      const snapshot = await this.readJson<PromptManagerSnapshot>(selected[0]);
+      this.state.load(snapshot);
+      vscode.window.showInformationMessage("PromptManager workspace imported.");
+    } catch (error) {
+      this.showPersistenceError("import PromptManager workspace", error);
+    }
+  }
+
+  private async ensureWorkspacePersistenceStructure(root: vscode.Uri): Promise<void> {
+    const base = this.getPersistenceFolderUri(root);
+
+    await vscode.workspace.fs.createDirectory(base);
+    await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(base, "workflows"));
+    await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(base, "templates"));
+  }
+
+  private async hasWorkspaceFileState(root: vscode.Uri): Promise<boolean> {
+    return (await this.exists(this.getTasksFileUri(root))) || (await this.exists(this.getQueueFileUri(root)));
+  }
+
+  private getWorkspaceRoot(): vscode.Uri | undefined {
+    return vscode.workspace.workspaceFolders?.[0]?.uri;
+  }
+
+  private getPersistenceFolderUri(root: vscode.Uri): vscode.Uri {
+    return vscode.Uri.joinPath(root, PromptManagerViewProvider.workspaceFolderName);
+  }
+
+  private getTasksFileUri(root: vscode.Uri): vscode.Uri {
+    return vscode.Uri.joinPath(this.getPersistenceFolderUri(root), "tasks.json");
+  }
+
+  private getQueueFileUri(root: vscode.Uri): vscode.Uri {
+    return vscode.Uri.joinPath(this.getPersistenceFolderUri(root), "queue.json");
+  }
+
+  private async exists(uri: vscode.Uri): Promise<boolean> {
+    try {
+      await vscode.workspace.fs.stat(uri);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async readJson<T>(uri: vscode.Uri): Promise<T> {
+    const bytes = await vscode.workspace.fs.readFile(uri);
+    return JSON.parse(Buffer.from(bytes).toString("utf8")) as T;
+  }
+
+  private async writeJson(uri: vscode.Uri, value: unknown): Promise<void> {
+    await vscode.workspace.fs.writeFile(
+      uri,
+      Buffer.from(`${JSON.stringify(value, undefined, 2)}\n`, "utf8")
+    );
+  }
+
+  private showPersistenceError(action: string, error: unknown): void {
+    const detail = error instanceof Error ? error.message : String(error);
+    vscode.window.showErrorMessage(`Could not ${action}: ${detail}`);
   }
 
   private async sendNextQueueItem(): Promise<void> {

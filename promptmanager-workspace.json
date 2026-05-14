@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "autoSendNext": false,
+  "isQueueCollapsed": true,
+  "detachedPrompts": [],
+  "tasks": [
+    {
+      "id": "task-1778779647332",
+      "title": "UI/UX Improvements",
+      "category": "other",
+      "status": "todo",
+      "acceptanceCriteria": [
+        {
+          "text": "whenever clicking around and focusing different elements in the window. the scrollview doesn't change position or reset back to the top. the user is the only one who controls the position of the scrollview",
+          "status": "pending"
+        }
+      ],
+      "prompts": [
+        {
+          "id": "prompt-1778779679580",
+          "title": "Fix scroll reset",
+          "content": "Whenever finishin to add information in a input field. I click outside of it to access another field, but since there are a lot of tasks, the scrollview reset back to the top, hidding the element I tried to interact next. Implement the fix to prevent this scroll reset back to the top and keep the container/scrollview in the same position.",
+          "references": [],
+          "isCollapsed": false,
+          "createdAt": 1778779679580
+        }
+      ],
+      "references": [],
+      "isCollapsed": false,
+      "createdAt": 1778779647332
+    }
+  ],
+  "executionQueue": []
+}
