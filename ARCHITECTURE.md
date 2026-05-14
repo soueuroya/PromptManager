@@ -4,41 +4,55 @@
 
 ```txt
 root/
- |-- media/
- |   |-- icon.png
- |   `-- icon.svg
+ |-- .promptmanager/
+ |   |-- tasks.json
+ |   |-- queue.json
+ |   |-- workflows/
+ |   `-- templates/
  |
- |-- src/
- |   |-- extension.ts
- |   |-- models.ts
+ |-- prompt-manager/
+ |   |-- media/
+ |   |   |-- icon.png
+ |   |   `-- icon.svg
  |   |
- |   |-- state/
- |   |   `-- PromptManagerState.ts
+ |   |-- src/
+ |   |   |-- extension.ts
+ |   |   |-- models.ts
+ |   |   |
+ |   |   |-- state/
+ |   |   |   `-- PromptManagerState.ts
+ |   |   |
+ |   |   |-- ui/
+ |   |   |   |-- PromptManagerViewProvider.ts
+ |   |   |   `-- PromptManagerHtmlRenderer.ts
+ |   |   |
+ |   |   `-- test/
+ |   |       `-- extension.test.ts
  |   |
- |   `-- ui/
- |       |-- PromptManagerViewProvider.ts
- |       `-- PromptManagerHtmlRenderer.ts
- |
- |-- dist/
- |   `-- extension.js
+ |   |-- dist/
+ |   |   `-- extension.js
+ |   |
+ |   |-- package.json
+ |   |-- package-lock.json
+ |   |-- tsconfig.json
+ |   |-- esbuild.js
+ |   |-- README.md
+ |   |-- CHANGELOG.md
+ |   |-- LICENSE.txt
+ |   `-- prompt-manager-*.vsix
  |
  |-- AGENTS.md
  |-- PROJECT_CONTEXT.md
  |-- ARCHITECTURE.md
  |-- TASK_GUIDE.md
  |-- ROADMAP.md
- |
- |-- package.json
- |-- tsconfig.json
- |-- esbuild.js
+ |-- promptmanager-workspace.json
  |-- README.md
- |-- CHANGELOG.md
- `-- LICENSE
 ```
 
 ## Layer Responsibilities
 
-### extension.ts
+### prompt-manager/src/extension.ts
 
 Registers the VS Code extension.
 
@@ -50,7 +64,7 @@ Responsibilities:
 
 Should remain minimal.
 
-### models.ts
+### prompt-manager/src/models.ts
 
 Contains all shared data structures.
 
@@ -70,7 +84,7 @@ Rules:
 
 Persistence depends on these models remaining stable.
 
-### PromptManagerState.ts
+### prompt-manager/src/state/PromptManagerState.ts
 
 Main business logic runtime.
 
@@ -94,7 +108,7 @@ Rules:
 - No VS Code APIs
 - No webview code
 
-### PromptManagerViewProvider.ts
+### prompt-manager/src/ui/PromptManagerViewProvider.ts
 
 Bridge between:
 
@@ -116,7 +130,7 @@ Rules:
 - Avoid business logic
 - Mostly orchestration
 
-### PromptManagerHtmlRenderer.ts
+### prompt-manager/src/ui/PromptManagerHtmlRenderer.ts
 
 Webview rendering layer.
 
@@ -184,7 +198,7 @@ This keeps state per VS Code workspace.
 File-backed persistence uses:
 
 ```txt
-.promptmanager/
+root/.promptmanager/
  |-- tasks.json
  |-- queue.json
  |-- workflows/
@@ -193,7 +207,8 @@ File-backed persistence uses:
 
 `tasks.json` stores tasks and detached prompts.
 
-`queue.json` stores the execution queue and queue UI/runtime flags.
+`queue.json` stores the execution queue, archived queue history, and queue
+UI/runtime flags such as Auto Next, Keep History, and collapsed state.
 
 The webview provider also supports exporting the entire PromptManager snapshot into one JSON file and importing it later. This is the sharing format for moving tasks, prompts, criteria, references, and queue state between workspaces or users.
 
@@ -208,9 +223,9 @@ If changing persistence structure:
 
 Avoid silently breaking user data.
 
-## package.json Responsibilities
+## prompt-manager/package.json Responsibilities
 
-`package.json` controls:
+`prompt-manager/package.json` controls:
 
 - Activation events
 - Activity bar registration
@@ -238,10 +253,10 @@ Build pipeline:
 TypeScript
     |
     v
-esbuild.js
+prompt-manager/esbuild.js
     |
     v
-dist/extension.js
+prompt-manager/dist/extension.js
     |
     v
 vsce package
@@ -255,12 +270,14 @@ vsce package
 VSIX packaging uses:
 
 ```bash
+cd prompt-manager
 vsce package
 ```
 
 Before packaging:
 
 ```bash
+cd prompt-manager
 npm run compile
 ```
 

@@ -56,10 +56,16 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
 
         case "toggleAutoSend":
           this.state.autoSendNext = Boolean(message.value);
+          this.state.refreshAllQueuePayloads();
           break;
 
         case "toggleKeepHistory":
           this.state.keepHistory = Boolean(message.value);
+          break;
+
+        case "toggleFullTest":
+          this.state.fullTest = Boolean(message.value);
+          this.state.refreshAllQueuePayloads();
           break;
 
         case "updateTaskTitle":
@@ -304,6 +310,7 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
         version: snapshot.version,
         autoSendNext: snapshot.autoSendNext,
         keepHistory: snapshot.keepHistory,
+        fullTest: snapshot.fullTest,
         isQueueCollapsed: snapshot.isQueueCollapsed,
         executionQueue: snapshot.executionQueue,
         queueHistory: snapshot.queueHistory
@@ -336,6 +343,7 @@ export class PromptManagerViewProvider implements vscode.WebviewViewProvider {
         version: 1,
         autoSendNext: queueFile.autoSendNext ?? current.autoSendNext,
         keepHistory: queueFile.keepHistory ?? current.keepHistory,
+        fullTest: queueFile.fullTest ?? current.fullTest,
         isQueueCollapsed: queueFile.isQueueCollapsed ?? current.isQueueCollapsed,
         detachedPrompts: tasksFile.detachedPrompts ?? current.detachedPrompts,
         tasks: tasksFile.tasks ?? current.tasks,

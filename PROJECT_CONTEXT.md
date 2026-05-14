@@ -120,18 +120,18 @@ Auto Next, and next-action updates.
 The required fields are:
 
 ```txt
-TASK_STATUS:
-PROMPT_STATUS:
-QUEUE_STATUS:
-ACCEPTANCE_CRITERIA:
-- [index] PASS | FAIL | UNKNOWN — explanation
-NEXT_QUEUE_ACTION:
-AUTO_NEXT_ALLOWED:
+PROMPTMANAGER_STATE_UPDATE_BLOCK:
+PROMPTMANAGER_PROMPT_STATE:
+PROMPTMANAGER_ACCEPTANCE_STATE:
+PROMPTMANAGER_QUEUE_STATE:
+PROMPTMANAGER_TASK_STATE:
+PROMPTMANAGER_NEXT_ACTION:
 ```
 
-`DONE` can only be reported when every acceptance criterion is `PASS`.
+`PROMPTMANAGER_ACCEPTANCE_STATE` must be `NONE` when no acceptance criteria
+exist. `DONE` can only be reported when every acceptance criterion is `PASS`.
 `UNKNOWN` prevents `DONE`. Auto Next may only continue when it is enabled and
-all criteria pass; otherwise the next queue action must be `STOP`.
+all criteria pass; otherwise the next action must be `STOP`.
 
 ## Long-Term Vision
 

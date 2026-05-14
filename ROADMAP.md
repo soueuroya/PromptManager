@@ -12,7 +12,9 @@ Implemented:
 - References
 - Queue system
 - Auto-next toggle
+- Keep-history queue archive toggle
 - Workspace persistence
+- File-backed persistence
 - VSIX packaging
 
 ## Next Milestone: Better Queue Runtime
@@ -38,11 +40,11 @@ Improve:
 - Agent status reporting
 - Acceptance criteria validation loops
 
-## Future Milestones
+## Current Infrastructure
 
-### File-Based Persistence
+### File-Backed Persistence
 
-Potential future workspace structure:
+Implemented workspace structure:
 
 ```txt
 .promptmanager/
@@ -52,7 +54,9 @@ Potential future workspace structure:
  `-- templates/
 ```
 
-This would make PromptManager state more portable, reviewable, and shareable.
+This makes PromptManager state more portable, reviewable, and shareable.
+
+## Future Milestones
 
 ### Agent Integration
 

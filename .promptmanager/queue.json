@@ -1,16 +1,9 @@
 {
   "version": 1,
   "autoSendNext": false,
+  "keepHistory": false,
+  "fullTest": false,
   "isQueueCollapsed": false,
-  "executionQueue": [
-    {
-      "id": "queue-1778782349450",
-      "type": "prompt",
-      "sourceId": "prompt-1778782244823",
-      "parentTaskId": "task-1778779647332",
-      "title": "Add option to \"Keep Hisotry\"",
-      "payload": "# PromptManager Agent Execution Prompt\n\nYou are receiving a structured prompt from PromptManager.\nRun it as an agent action, then validate the result if task criteria are available.\n\n## Parent Task\nTask: UI/UX Improvements\nTask Category: other\nAuto Next Enabled: NO\n\n## STEP 1 — EXECUTE PROMPT\nPrompt Title: Add option to \"Keep Hisotry\"\n\nRight next to the option: \"Auto Next\" we need to add the option \"Keep History\"\nIf selected, any tasks/prompts on the queue flagged as Done will be archived. \nIf not keeping history, simply deleted.\n\n## References\nNo references provided.\n\n## STEP 2 — VALIDATE AGAINST TASK ACCEPTANCE CRITERIA\nAfter executing the prompt, validate against these criteria:\nNo acceptance criteria were provided.\n\n## REQUIRED FINAL RESPONSE\n\nPROMPTMANAGER_IMPLEMENTATION_SUMMARY:\n- What changed\n- Files touched\n\nPROMPTMANAGER_ACCEPTANCE_RESULTS:\n- Criterion 1: PASS/FAIL/UNKNOWN — explanation\n\nPROMPTMANAGER_FINAL_STATUS:\nDONE = all criteria passed\nIN_PROGRESS = more work is needed\nFAILED = blocked or criteria failed\n\nPROMPTMANAGER_NEXT_ACTION:\nDo not continue automatically. Stop after reporting status.\n\n## PROMPTMANAGER STATE FEEDBACK REQUIREMENT\n\nBefore you finish, explicitly report the PromptManager state updates that should be applied:\n- Mark each completed prompt as passed when its requested work is implemented and verified.\n- Mark each acceptance criterion as passed only when validation proves it is satisfied.\n- Mark the queue item as done only when the implementation and validation are complete.\n- Mark the parent task as done when all prompts are complete and all acceptance criteria are passed.\n- If any prompt or acceptance criterion is incomplete, blocked, or failed, report IN_PROGRESS or FAILED instead of DONE and explain which state should remain pending or failed.\n\nInclude these state signals in the final response when applicable:\nPROMPTMANAGER_PROMPT_STATE: PASSED | PENDING | FAILED\nPROMPTMANAGER_ACCEPTANCE_STATE: PASSED | PENDING | FAILED\nPROMPTMANAGER_QUEUE_STATE: DONE | IN_PROGRESS | FAILED\nPROMPTMANAGER_TASK_STATE: DONE | IN_PROGRESS | FAILED",
-      "status": "queued"
-    }
-  ]
+  "executionQueue": [],
+  "queueHistory": []
 }

@@ -12,6 +12,7 @@ export interface PromptManagerSnapshot {
   version: number;
   autoSendNext: boolean;
   keepHistory: boolean;
+  fullTest: boolean;
   isQueueCollapsed: boolean;
   detachedPrompts: PromptItem[];
   tasks: TaskItem[];
@@ -20,29 +21,34 @@ export interface PromptManagerSnapshot {
 }
 
 export class PromptManagerState {
+  public static readonly promptContentPlaceholder = "Describe what the AI should do here...";
+
   private static readonly stateUpdateInstructions = [
     "",
     "## PromptManager State Update Protocol",
     "",
     "Your final response must end with a machine-readable PROMPTMANAGER_STATE_UPDATE_BLOCK.",
     "Use only these exact status values:",
-    "- TASK_STATUS: TODO, IMPLEMENTED, VALIDATING, DONE, IN_PROGRESS, FAILED, BLOCKED",
-    "- PROMPT_STATUS: TODO, IMPLEMENTED, VALIDATED, DONE, FAILED, BLOCKED",
-    "- QUEUE_STATUS: QUEUED, ACTIVE, IMPLEMENTING, VALIDATING, DONE, FAILED, BLOCKED",
-    "- Acceptance criteria: PASS, FAIL, UNKNOWN",
+    "- PROMPTMANAGER_PROMPT_STATE: TODO, IMPLEMENTED, VALIDATED, DONE, FAILED, BLOCKED",
+    "- PROMPTMANAGER_ACCEPTANCE_STATE: PASS, FAIL, UNKNOWN, NONE",
+    "- PROMPTMANAGER_QUEUE_STATE: QUEUED, ACTIVE, IMPLEMENTING, VALIDATING, DONE, FAILED, BLOCKED",
+    "- PROMPTMANAGER_TASK_STATE: TODO, IMPLEMENTED, VALIDATING, DONE, IN_PROGRESS, FAILED, BLOCKED",
+    "- PROMPTMANAGER_NEXT_ACTION: CONTINUE, STOP",
     "",
     "State rules:",
     "- DONE can only be used when every acceptance criterion is PASS.",
+    "- Use PROMPTMANAGER_ACCEPTANCE_STATE: NONE when no acceptance criteria exist.",
     "- UNKNOWN prevents DONE.",
-    "- If Auto Next is enabled and every acceptance criterion is PASS, set NEXT_QUEUE_ACTION to CONTINUE.",
-    "- If Auto Next is disabled, set NEXT_QUEUE_ACTION to STOP.",
-    "- If anything fails or is UNKNOWN, set NEXT_QUEUE_ACTION to STOP.",
+    "- If Auto Next is enabled and every acceptance criterion is PASS, set PROMPTMANAGER_NEXT_ACTION to CONTINUE.",
+    "- If Auto Next is disabled, set PROMPTMANAGER_NEXT_ACTION to STOP.",
+    "- If anything fails or is UNKNOWN, set PROMPTMANAGER_NEXT_ACTION to STOP.",
     "",
     "Copy the block below as the final section of your response and replace the statuses/explanations with the actual result."
   ].join("\n");
 
   public autoSendNext = false;
   public keepHistory = false;
+  public fullTest = false;
   public isQueueCollapsed = false;
   public detachedPrompts: PromptItem[] = [];
   public tasks: TaskItem[] = [];
@@ -60,6 +66,7 @@ export class PromptManagerState {
 
     this.autoSendNext = snapshot.autoSendNext ?? false;
     this.keepHistory = snapshot.keepHistory ?? false;
+    this.fullTest = snapshot.fullTest ?? false;
     this.isQueueCollapsed = snapshot.isQueueCollapsed ?? false;
     this.detachedPrompts = snapshot.detachedPrompts ?? [];
     this.tasks = snapshot.tasks ?? [];
@@ -72,6 +79,7 @@ export class PromptManagerState {
       version: 1,
       autoSendNext: this.autoSendNext,
       keepHistory: this.keepHistory,
+      fullTest: this.fullTest,
       isQueueCollapsed: this.isQueueCollapsed,
       detachedPrompts: this.detachedPrompts,
       tasks: this.tasks,
@@ -98,7 +106,7 @@ export class PromptManagerState {
     this.detachedPrompts.push({
       id: `detached-prompt-${Date.now()}`,
       title: "New Detached Prompt",
-      content: "Describe what the AI should do here...",
+      content: "",
       references: [],
       isCollapsed: false,
       createdAt: Date.now()
@@ -168,7 +176,7 @@ export class PromptManagerState {
     task.prompts.push({
       id: `prompt-${Date.now()}`,
       title: "New Prompt",
-      content: "Describe what the AI should do here...",
+      content: "",
       references: [],
       isCollapsed: false,
       createdAt: Date.now()
@@ -546,6 +554,16 @@ export class PromptManagerState {
     return this.executionQueue.find(q => q.status === "queued");
   }
 
+  public refreshAllQueuePayloads(): void {
+    for (const task of this.tasks) {
+      this.refreshQueuePayloadsForTask(task.id);
+    }
+
+    for (const prompt of this.detachedPrompts) {
+      this.refreshQueuePayloadsForPrompt(prompt.id);
+    }
+  }
+
   private getTask(taskId: string): TaskItem | undefined {
     return this.tasks.find(t => t.id === taskId);
   }
@@ -620,24 +638,53 @@ export class PromptManagerState {
     }
   }
 
-  private buildStateUpdateBlock(criteria: AcceptanceCriterion[]): string {
-    const criteriaLines =
-      criteria.length > 0
-        ? criteria.map((_, index) => `- [${index + 1}] UNKNOWN \u2014 Not validated yet.`)
-        : ["- [0] UNKNOWN \u2014 No acceptance criteria were provided."];
+  private buildAcceptanceResultsTemplate(criteria: AcceptanceCriterion[]): string[] {
+    if (criteria.length === 0) {
+      return [
+        "PROMPTMANAGER_ACCEPTANCE_RESULTS:",
+        "- No acceptance criteria were provided."
+      ];
+    }
 
+    return [
+      "PROMPTMANAGER_ACCEPTANCE_RESULTS:",
+      ...criteria.map((_, index) => `- Criterion ${index + 1}: PASS/FAIL/UNKNOWN \u2014 explanation`)
+    ];
+  }
+
+  private buildStateUpdateBlock(criteria: AcceptanceCriterion[]): string {
     return [
       PromptManagerState.stateUpdateInstructions,
       "",
-      "## PROMPTMANAGER_STATE_UPDATE_BLOCK",
-      "TASK_STATUS: TODO",
-      "PROMPT_STATUS: TODO",
-      "QUEUE_STATUS: IMPLEMENTING",
-      "ACCEPTANCE_CRITERIA:",
-      ...criteriaLines,
-      "NEXT_QUEUE_ACTION: STOP",
-      `AUTO_NEXT_ALLOWED: ${this.autoSendNext ? "YES" : "NO"}`
+      "PROMPTMANAGER_STATE_UPDATE_BLOCK:",
+      "PROMPTMANAGER_PROMPT_STATE: TODO",
+      `PROMPTMANAGER_ACCEPTANCE_STATE: ${criteria.length > 0 ? "UNKNOWN" : "NONE"}`,
+      "PROMPTMANAGER_QUEUE_STATE: IMPLEMENTING",
+      "PROMPTMANAGER_TASK_STATE: TODO",
+      "PROMPTMANAGER_NEXT_ACTION: STOP"
     ].join("\n");
+  }
+
+  private buildFullTestInstructions(): string[] {
+    if (!this.fullTest) {
+      return [
+        "Full Test Enabled: NO",
+        "Use your normal internal validation judgment. Run targeted checks when they are useful."
+      ];
+    }
+
+    return [
+      "Full Test Enabled: YES",
+      "",
+      "## Full Test Instructions",
+      "After implementation, make a best effort to fully test the change:",
+      "- Inspect the relevant code paths.",
+      "- Run the project's build or compile command.",
+      "- Install dependencies if they are missing and installation is possible.",
+      "- Run automated tests, lint checks, packaging, or extension execution checks when available.",
+      "- If execution is possible in the current environment, launch or exercise the affected workflow.",
+      "- If any full-test action cannot be run, report exactly what was skipped and why."
+    ];
   }
 
   private buildTaskPayload(task: TaskItem): string {
@@ -674,6 +721,7 @@ export class PromptManagerState {
       `Category: ${task.category}`,
       `Current PromptManager Status: ${task.status}`,
       `Auto Next Enabled: ${this.autoSendNext ? "YES" : "NO"}`,
+      ...this.buildFullTestInstructions(),
       "",
       "## References",
       taskReferences || "No task-level references provided.",
@@ -709,9 +757,7 @@ export class PromptManagerState {
       "- Systems touched",
       "- Important decisions",
       "",
-      "PROMPTMANAGER_ACCEPTANCE_RESULTS:",
-      "- Criterion 1: PASS/FAIL/UNKNOWN — explanation",
-      "- Criterion 2: PASS/FAIL/UNKNOWN — explanation",
+      ...this.buildAcceptanceResultsTemplate(task.acceptanceCriteria),
       "",
       "PROMPTMANAGER_FINAL_STATUS:",
       "DONE = all criteria passed",
@@ -752,6 +798,7 @@ export class PromptManagerState {
       task ? `Task: ${task.title}` : "This prompt is not attached to a task.",
       task ? `Task Category: ${task.category}` : "",
       `Auto Next Enabled: ${this.autoSendNext ? "YES" : "NO"}`,
+      ...this.buildFullTestInstructions(),
       "",
       "## STEP 1 — EXECUTE PROMPT",
       `Prompt Title: ${prompt.title}`,
@@ -773,8 +820,7 @@ export class PromptManagerState {
       "",
       task
         ? [
-            "PROMPTMANAGER_ACCEPTANCE_RESULTS:",
-            "- Criterion 1: PASS/FAIL/UNKNOWN — explanation",
+            ...this.buildAcceptanceResultsTemplate(task.acceptanceCriteria),
             "",
             "PROMPTMANAGER_FINAL_STATUS:",
             "DONE = all criteria passed",

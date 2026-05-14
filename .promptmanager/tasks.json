@@ -1,30 +1,21 @@
 {
   "version": 1,
-  "detachedPrompts": [
-    {
-      "id": "detached-prompt-1778781130233",
-      "title": "Prevent Drag and Drop when clicking on input text areas",
-      "content": "Prevent Drag and Drop when clicking on input text areas of the extension.\nThe name of task and name of prompts input elements are still being dragged\nLet's make a dedicated Drag element on the UIs elements that are draggable. the other elements should behave normally, like being able to select specific parts of a text area",
-      "references": [],
-      "isCollapsed": true,
-      "createdAt": 1778781130233
-    }
-  ],
+  "detachedPrompts": [],
   "tasks": [
     {
       "id": "task-1778779647332",
       "title": "UI/UX Improvements",
       "category": "other",
-      "status": "running",
+      "status": "todo",
       "acceptanceCriteria": [],
       "prompts": [
         {
-          "id": "prompt-1778782244823",
-          "title": "Add option to \"Keep Hisotry\"",
-          "content": "Right next to the option: \"Auto Next\" we need to add the option \"Keep History\"\nIf selected, any tasks/prompts on the queue flagged as Done will be archived. \nIf not keeping history, simply deleted.",
+          "id": "prompt-1778783431832",
+          "title": "Improve Tasks Visualization",
+          "content": "In the extension, we need to improve the Task visualization.\n\n1- Move the status pill ex:\"TODO\" to the next line, underneath the Task title. in the same line, show the status drop drown and then the feature style dropdown.\nSo they are all in the same line right underneath the task title.\n\n2-To the right of the task title, we should add the X red button to delete the task and prompts.\n\n3-The button Queue should also be in the line unerneath the title. right after the feature style dropdown.\n\n4-After the \"+Queue\" button, we need to add a \"+'NoteIcon'\" a + with the NoteIcon or file icon next to it. this should be the add reference button, so you can remove the one bellow.\n\n5-PROMPT REFERENCES section should only show up if there are references added.\n\n6- Same for Acceptand Criteria. Only show the section if there are any. The Acceptance Criteria add button should be the last one on the second line, right after the +NoteIcon button. it should say \"+AC\"",
           "references": [],
           "isCollapsed": false,
-          "createdAt": 1778782244823
+          "createdAt": 1778783431832
         }
       ],
       "references": [],

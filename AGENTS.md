@@ -27,6 +27,18 @@ Before modifying the project, read:
 
 Then inspect the relevant implementation files.
 
+## Repository Layout
+
+This repository has a documentation/workspace root and a nested VS Code
+extension project.
+
+- Root documentation and PromptManager workspace files live at repository root.
+- Extension source, package metadata, build scripts, and generated VSIX files
+  live in `prompt-manager/`.
+- Implementation files are under `prompt-manager/src/`.
+- Run extension build, lint, compile, and package commands from
+  `prompt-manager/`.
+
 ## Important Behavior
 
 PromptManager is not just a prompt list.
@@ -58,17 +70,20 @@ Tasks should support this flow:
 Install dependencies:
 
 ```bash
+cd prompt-manager
 npm install
 ```
 
 Compile:
 
 ```bash
+cd prompt-manager
 npm run compile
 ```
 
 Package VSIX:
 
 ```bash
+cd prompt-manager
 vsce package
 ```

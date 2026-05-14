@@ -104,6 +104,8 @@ export class PromptManagerHtmlRenderer {
             <div class="${prompt.isCollapsed ? "hidden" : ""}">
               <textarea
                 class="prompt-content-input"
+                placeholder="${this.escapeHtml(PromptManagerState.promptContentPlaceholder)}"
+                onfocus="clearPromptPlaceholder(this)"
                 onchange="post('updateDetachedPromptContent', { promptId: '${prompt.id}', value: this.value })"
               >${this.escapeHtml(prompt.content)}</textarea>
 
@@ -246,6 +248,8 @@ export class PromptManagerHtmlRenderer {
             <div class="${prompt.isCollapsed ? "hidden" : ""}">
               <textarea
                 class="prompt-content-input"
+                placeholder="${this.escapeHtml(PromptManagerState.promptContentPlaceholder)}"
+                onfocus="clearPromptPlaceholder(this)"
                 onchange="post('updatePromptContent', { taskId: '${task.id}', promptId: '${prompt.id}', value: this.value })"
               >${this.escapeHtml(prompt.content)}</textarea>
 
@@ -417,6 +421,15 @@ export class PromptManagerHtmlRenderer {
               onchange="post('toggleKeepHistory', { value: this.checked })"
             />
             Keep history
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              ${state.fullTest ? "checked" : ""}
+              onchange="post('toggleFullTest', { value: this.checked })"
+            />
+            Full Test
           </label>
         </div>
 
@@ -743,6 +756,7 @@ export class PromptManagerHtmlRenderer {
         const vscode = acquireVsCodeApi();
         const queuePayloads = ${JSON.stringify(queuePayloads)};
         const scrollContainerSelectors = [".content", ".queue-body"];
+        const promptContentPlaceholder = ${JSON.stringify(PromptManagerState.promptContentPlaceholder)};
 
         function getPersistedState() {
           return vscode.getState() || {};
@@ -790,6 +804,12 @@ export class PromptManagerHtmlRenderer {
 
         function copyQueuePayload(queueId) {
           navigator.clipboard.writeText(queuePayloads[queueId] || "");
+        }
+
+        function clearPromptPlaceholder(textarea) {
+          if (textarea.value === promptContentPlaceholder) {
+            textarea.value = "";
+          }
         }
 
         function allowDrop(event) {

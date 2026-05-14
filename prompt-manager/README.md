@@ -37,6 +37,7 @@ The queue system supports:
 
 - Sequential execution
 - Auto-next workflows
+- Optional keep-history archiving for completed queue items
 - Validation cycles
 - Drag & drop prompt delivery
 
@@ -77,7 +78,17 @@ PromptManager automatically generates structured execution payloads.
 
 ## Workspace Persistence
 
-All PromptManager data is saved per VS Code workspace.
+All PromptManager data is saved per VS Code workspace. The extension uses VS
+Code `workspaceState` and file-backed workspace persistence at the repository
+root:
+
+```txt
+.promptmanager/
+|-- tasks.json
+|-- queue.json
+|-- workflows/
+`-- templates/
+```
 
 ---
 
@@ -105,5 +116,8 @@ Future plans include:
 ## Run Extension
 
 ```bash
+cd prompt-manager
 npm install
 npm run compile
+vsce package
+```
