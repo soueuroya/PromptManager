@@ -1,71 +1,109 @@
-# prompt-manager README
+# PromptManager
 
-This is the README for your extension "prompt-manager". After writing up a brief description, we recommend including the following sections.
+PromptManager is a VS Code extension for orchestrating AI workflows using structured tasks, prompts, execution queues, references, and acceptance criteria.
 
-## Features
+It is designed for developers working with AI coding agents such as:
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+- Claude
+- ChatGPT
+- Gemini
+- Windsurf
+- Antigravity
+- Continue.dev
+- RooCode
+- Cline
 
 ---
 
-## Following extension guidelines
+# Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+## Task Management
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+Create structured tasks with:
 
-## Working with Markdown
+- Categories
+- Status
+- Acceptance criteria
+- Nested prompts
+- File/folder references
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+---
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+## Prompt Queue System
 
-## For more information
+Queue prompts and tasks for execution.
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+The queue system supports:
 
-**Enjoy!**
+- Sequential execution
+- Auto-next workflows
+- Validation cycles
+- Drag & drop prompt delivery
+
+---
+
+## Acceptance Criteria Validation
+
+Tasks can contain validation rules that AI agents should verify after implementation.
+
+PromptManager generates structured prompts that guide the AI through:
+
+1. Implementation
+2. Validation
+3. Final status reporting
+
+---
+
+## Detached Prompts
+
+Create loose prompts not attached to tasks.
+
+Useful for:
+
+- brainstorming
+- code reviews
+- architecture planning
+- bug investigations
+
+---
+
+## Drag & Drop Workflow
+
+Drag tasks/prompts into AI agents.
+
+PromptManager automatically generates structured execution payloads.
+
+---
+
+## Workspace Persistence
+
+All PromptManager data is saved per VS Code workspace.
+
+---
+
+# Current Status
+
+Current version focuses on:
+
+- local workspace persistence
+- queue orchestration
+- AI-ready prompt generation
+- task validation cycles
+
+Future plans include:
+
+- AI provider integrations
+- DAG workflows
+- automated agent execution
+- multi-agent orchestration
+- graph visualization
+
+---
+
+# Development
+
+## Run Extension
+
+```bash
+npm install
+npm run compile

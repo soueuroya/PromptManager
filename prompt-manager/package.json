@@ -1,53 +1,46 @@
 {
   "name": "prompt-manager",
   "displayName": "PromptManager",
-  "description": "AI task and prompt orchestration workspace",
+  "description": "AI task and prompt orchestration workspace for developers using AI agents",
   "version": "0.0.1",
+  "publisher": "daniel-boldrin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USER/prompt-manager.git"
+  },
+  "homepage": "https://github.com/YOUR_USER/prompt-manager",
+  "bugs": {
+    "url": "https://github.com/YOUR_USER/prompt-manager/issues"
+  },
   "engines": {
     "vscode": "^1.118.0"
   },
-  "categories": ["Other"],
-
-  "activationEvents": [
-    "onView:promptExplorer",
-    "onCommand:promptManager.openDashboard",
-    "onCommand:promptManager.createPrompt",
-    "onCommand:promptManager.createTask",
-    "onCommand:promptManager.setTaskCategory",
-    "onCommand:promptManager.addAcceptanceCriteria",
-    "onCommand:promptManager.askAiToBuildPrompt"
+  "categories": [
+    "Other",
+    "Productivity",
+    "AI",
+    "Snippets"
   ],
-
+  "keywords": [
+    "ai",
+    "prompt",
+    "workflow",
+    "agent",
+    "automation",
+    "tasks",
+    "claude",
+    "chatgpt",
+    "gemini",
+    "windsurf",
+    "copilot"
+  ],
+  "icon": "media/icon.png",
+  "activationEvents": [
+    "onView:promptManagerView"
+  ],
   "main": "./dist/extension.js",
-
   "contributes": {
-    "commands": [
-      {
-        "command": "promptManager.openDashboard",
-        "title": "PromptManager: Open Dashboard"
-      },
-      {
-        "command": "promptManager.createTask",
-        "title": "Create Task"
-      },
-      {
-        "command": "promptManager.createPrompt",
-        "title": "Create Prompt"
-      },
-      {
-        "command": "promptManager.setTaskCategory",
-        "title": "Set Task Category"
-      },
-      {
-        "command": "promptManager.addAcceptanceCriteria",
-        "title": "Add Acceptance Criteria"
-      },
-      {
-        "command": "promptManager.askAiToBuildPrompt",
-        "title": "Ask AI to Build Prompts"
-      }
-    ],
-
     "viewsContainers": {
       "activitybar": [
         {
@@ -57,42 +50,22 @@
         }
       ]
     },
-
     "views": {
       "promptManager": [
         {
-          "id": "promptExplorer",
-          "name": "Prompts"
+          "type": "webview",
+          "id": "promptManagerView",
+          "name": "PromptManager"
         }
       ]
     },
-
-    "menus": {
-      "view/item/context": [
-        {
-          "when": "view == promptExplorer && viewItem == task",
-          "command": "promptManager.createPrompt",
-          "group": "taskActions"
-        },
-        {
-          "when": "view == promptExplorer && viewItem == task",
-          "command": "promptManager.setTaskCategory",
-          "group": "taskActions"
-        },
-        {
-          "when": "view == promptExplorer && viewItem == task",
-          "command": "promptManager.addAcceptanceCriteria",
-          "group": "taskActions"
-        },
-        {
-          "when": "view == promptExplorer && viewItem == prompt",
-          "command": "promptManager.askAiToBuildPrompt",
-          "group": "promptActions"
-        }
-      ]
-    }
+    "commands": [
+      {
+        "command": "promptManager.refresh",
+        "title": "PromptManager: Refresh"
+      }
+    ]
   },
-
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "npm run check-types && npm run lint && node esbuild.js",
@@ -100,20 +73,23 @@
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test"
   },
-
   "devDependencies": {
-    "@types/vscode": "^1.118.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "eslint": "^9.39.3",
+    "@types/vscode": "^1.118.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.3",
+    "eslint": "^9.39.3",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.56.1"
   }
 }

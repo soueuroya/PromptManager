@@ -1,0 +1,23 @@
+
+---
+
+# `CHANGELOG.md`
+
+```md
+# Changelog
+
+## 0.0.1
+
+Initial development release.
+
+### Features
+
+- Task management
+- Nested prompts
+- Acceptance criteria
+- Detached prompts
+- Queue system
+- Drag & drop support
+- Workspace persistence
+- AI execution payload generation
+- Auto-next workflow support
