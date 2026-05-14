@@ -1,0 +1,34 @@
+# =========================================
+# Prompt Manager VS Code Extension
+# =========================================
+
+# Dependencies
+prompt-manager/node_modules/
+
+# Build output
+prompt-manager/out/
+prompt-manager/dist/
+prompt-manager/*.vsix
+
+# Logs
+prompt-manager/npm-debug.log*
+prompt-manager/yarn-debug.log*
+prompt-manager/yarn-error.log*
+
+# TypeScript
+prompt-manager/*.tsbuildinfo
+
+# Coverage / tests
+prompt-manager/coverage/
+prompt-manager/test-results/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Optional VS Code local settings
+prompt-manager/.vscode/*
+!prompt-manager/.vscode/extensions.json
+!prompt-manager/.vscode/launch.json
+!prompt-manager/.vscode/tasks.json
+!prompt-manager/.vscode/settings.json

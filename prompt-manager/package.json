@@ -1,0 +1,119 @@
+{
+  "name": "prompt-manager",
+  "displayName": "PromptManager",
+  "description": "AI task and prompt orchestration workspace",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.118.0"
+  },
+  "categories": ["Other"],
+
+  "activationEvents": [
+    "onView:promptExplorer",
+    "onCommand:promptManager.openDashboard",
+    "onCommand:promptManager.createPrompt",
+    "onCommand:promptManager.createTask",
+    "onCommand:promptManager.setTaskCategory",
+    "onCommand:promptManager.addAcceptanceCriteria",
+    "onCommand:promptManager.askAiToBuildPrompt"
+  ],
+
+  "main": "./dist/extension.js",
+
+  "contributes": {
+    "commands": [
+      {
+        "command": "promptManager.openDashboard",
+        "title": "PromptManager: Open Dashboard"
+      },
+      {
+        "command": "promptManager.createTask",
+        "title": "Create Task"
+      },
+      {
+        "command": "promptManager.createPrompt",
+        "title": "Create Prompt"
+      },
+      {
+        "command": "promptManager.setTaskCategory",
+        "title": "Set Task Category"
+      },
+      {
+        "command": "promptManager.addAcceptanceCriteria",
+        "title": "Add Acceptance Criteria"
+      },
+      {
+        "command": "promptManager.askAiToBuildPrompt",
+        "title": "Ask AI to Build Prompts"
+      }
+    ],
+
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "promptManager",
+          "title": "PromptManager",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+
+    "views": {
+      "promptManager": [
+        {
+          "id": "promptExplorer",
+          "name": "Prompts"
+        }
+      ]
+    },
+
+    "menus": {
+      "view/item/context": [
+        {
+          "when": "view == promptExplorer && viewItem == task",
+          "command": "promptManager.createPrompt",
+          "group": "taskActions"
+        },
+        {
+          "when": "view == promptExplorer && viewItem == task",
+          "command": "promptManager.setTaskCategory",
+          "group": "taskActions"
+        },
+        {
+          "when": "view == promptExplorer && viewItem == task",
+          "command": "promptManager.addAcceptanceCriteria",
+          "group": "taskActions"
+        },
+        {
+          "when": "view == promptExplorer && viewItem == prompt",
+          "command": "promptManager.askAiToBuildPrompt",
+          "group": "promptActions"
+        }
+      ]
+    }
+  },
+
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+
+  "devDependencies": {
+    "@types/vscode": "^1.118.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "eslint": "^9.39.3",
+    "esbuild": "^0.27.3",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
